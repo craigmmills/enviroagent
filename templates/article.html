@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ article.title }}</title>
+    <!-- Include Bootstrap for styling and the progress bar -->
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <!-- Leaflet CSS for the map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            margin-top: 30px;
+            border-radius: 8px;
+            box-shadow: 0px 2px 12px rgba(0,0,0,0.1);
+        }
+        .btn {
+            border-radius: 0;
+        }
+        #map {
+            height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>{{ article.title }}</h2>
+        <div>
+            <!-- Render the article HTML safely -->
+            <div>{{ article.html | safe }}</div>
+            <br>
+            <p><strong>Summary:</strong> {{ article.summary }}</p>
+            <p><strong>Original Score:</strong> {{ article.tweet_worthiness }}</p>
+        </div>
+        
+        <!-- Progress bar display -->
+        <div class="mb-4">
+            <p>Progress: {{ article_index + 1 }} of {{ total_articles }} articles</p>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" 
+                     style="width: {{ progress }}%;" 
+                     aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ progress|round(0) }}%
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Evaluation Form -->
+                <form id="evaluationForm" method="post">
+                    <div class="form-group">
+                        <label>Your Score:</label>
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            {% for i in range(1, 11) %}
+                            <label class="btn btn-outline-primary">
+                                <input type="radio" name="user_score" value="{{ i }}" required> {{ i }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="user_reasoning">Your Reasoning:</label>
+                        <textarea class="form-control" id="user_reasoning" name="user_reasoning" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" name="action" value="submit" class="btn btn-primary">Submit Score</button>
+                        <button type="submit" name="action" value="agree" class="btn btn-success ml-2" id="agreeButton"
+                            data-score="{{ article.tweet_worthiness }}" data-summary="{{ article.summary }}">
+                            Agree
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <!-- Smaller Map Container -->
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include jQuery, Popper, and Bootstrap JS for toggle buttons -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    <!-- Include Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialize Leaflet map with article coordinates
+        var lat = {{ article.geometry.coordinates[1] }};
+        var lng = {{ article.geometry.coordinates[0] }};
+        var map = L.map('map').setView([lat, lng], 5);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Place a marker at the article coordinates
+        L.marker([lat, lng]).addTo(map);
+
+        // Attach a click handler to the "Agree" button that fills in the fields with auto-evaluation
+        document.getElementById("agreeButton").addEventListener("click", function() {
+            var score = this.getAttribute("data-score");
+            var summary = this.getAttribute("data-summary");
+            // Check the radio button that matches the auto-generated score
+            var radios = document.getElementsByName("user_score");
+            for (var i = 0; i < radios.length; i++) {
+                if (radios[i].value == score) {
+                    radios[i].checked = true;
+                    break;
+                }
+            }
+            // Set the reasoning textarea with the auto-generated summary
+            document.getElementById("user_reasoning").value = summary;
+        });
+    </script>
+</body>
+</html> 

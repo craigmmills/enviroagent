@@ -1,0 +1,8 @@
+google-generativeai
+google-cloud-aiplatform
+langchain
+requests
+python-dotenv
+torch           # For PyTorch-based RL implementations
+stable-baselines3  # For Stable Baselines3 RL algorithms
+jupyter 

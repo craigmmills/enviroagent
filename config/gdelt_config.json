@@ -1,0 +1,7 @@
+{
+    "query": "landslide",
+    "mode": "PointData",
+    "timespan": "1d",
+    "format": "geojson",
+    "maxrecords": 10
+} 
